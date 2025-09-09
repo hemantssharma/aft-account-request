@@ -3,7 +3,7 @@ module "dev-team1" {
  
   control_tower_parameters = {
     AccountEmail              = "mr.hemantksharma+devaccount-3@gmail.com"
-    AccountName               = "devaccount-2"
+    AccountName               = "devaccount-3"
     ManagedOrganizationalUnit = "Sandbox"
     SSOUserEmail              = "mr.hemantksharma+devaccount-3@gmail.com"
     SSOUserFirstName          = "Dev"
