@@ -4,41 +4,29 @@ on:
     branches: [ "main" ]
     paths:
       - 'terraform/dev-team1.tf'
-
+      
 jobs:
   terraform:
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
+    defaults:
+      run:
+        working-directory: terraform   # 👈 important! point to your terraform folder
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::314431539167:role/AFTGitHubRole
-          audience: sts.amazonaws.com
-          aws-region: us-east-1
+      - name: Checkout
+        uses: actions/checkout@v3
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-
-      - name: Configure Git credentials for Terraform
-        run: |
-          git config --global url."https://oauth2:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
-
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.7
 
       - name: Terraform Init
         run: terraform init -upgrade
-        working-directory: terraform
-        env:
-          TF_VAR_github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Terraform Plan
+        run: terraform plan
 
       - name: Terraform Apply
         run: terraform apply -auto-approve
-        working-directory: terraform
-        env:
-          TF_VAR_github_token: ${{ secrets.GITHUB_TOKEN }}
+
