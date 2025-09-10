@@ -20,30 +20,30 @@ aft-bootstrap/
 terraform {
   required_version = ">= 1.6.0"
   backend "s3" {
-    bucket         = "my-terraform-state-bucket"  # replace with your bucket
+    bucket         = "my-terraform-state-bucket-aft-bootstrap"
     key            = "aft-bootstrap/terraform.tfstate"
     region         = "us-east-1"
     dynamodb_table = "my-terraform-locks"
   }
 }
- 
+
 provider "aws" {
   region = "us-east-1"
 }
- 
+
 module "aft" {
-source = "github.com/aws-ia/terraform-aws-control_tower_account_factory"
- 
-  ct_management_account_id  = "111111111111"   # <-- replace
-  aft_management_account_id = "222222222222"   # <-- replace
+  source = "github.com/aws-ia/terraform-aws-control_tower_account_factory"
+
+  ct_management_account_id  = "767397915550"
+  aft_management_account_id = "383975042464"
   ct_home_region            = "us-east-1"
- 
+
   vcs_provider                                = "github"
-  account_request_repo_name                   = "your-github-user/aft-account-request"
+  account_request_repo_name                   = "hemantssharma/aft-account-request"
   account_request_repo_branch                 = "main"
-  global_customizations_repo_name             = "your-github-user/aft-global-customizations"
-  account_customizations_repo_name            = "your-github-user/aft-account-customizations"
-  account_provisioning_customizations_repo_name = "your-github-user/aft-provisioning-customizations"
+  global_customizations_repo_name             = "hemantssharma/aft-global-customizations"
+  account_customizations_repo_name            = "hemantssharma/aft-account-customizations"
+  account_provisioning_customizations_repo_name = "hemantssharma/aft-provisioning-customizations"
 }
 ```
  
@@ -53,33 +53,34 @@ source = "github.com/aws-ia/terraform-aws-control_tower_account_factory"
 name: Deploy AFT
 on:
   workflow_dispatch:
- 
+
 jobs:
   terraform:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: read
- 
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
- 
+
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::222222222222:role/AFTBootstrapGitHubRole
+          role-to-assume: arn:aws:iam::383975042464:role/AFTGitHubRole
+          audience: sts.amazonaws.com
           aws-region: us-east-1
- 
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
- 
+
       - name: Terraform Init
         run: terraform init
- 
+
       - name: Terraform Plan
         run: terraform plan -out=tfplan
- 
+
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
 ```
@@ -104,20 +105,19 @@ module "dev-team1" {
   source = "./modules/aft-account-request"
  
   control_tower_parameters = {
-    AccountEmail              = "dev-team1@example.com"
-    AccountName               = "dev-team1"
+    AccountEmail              = "mr.hemantksharma+devaccount-1@gmail.com"
+    AccountName               = "devaccount-1"
     ManagedOrganizationalUnit = "Sandbox"
-    SSOUserEmail              = "lead@example.com"
+    SSOUserEmail              = "mr.hemantksharma+devaccount-1@gmail.com"
     SSOUserFirstName          = "Dev"
-    SSOUserLastName           = "Team1"
+    SSOUserLastName           = "Account-1"
   }
  
   account_tags = {
-    owner = "team1"
+    owner = "Dev"
     env   = "sandbox"
   }
-}
-```
+}```
  
 **.github/workflows/apply.yml**
  
@@ -128,30 +128,33 @@ on:
     branches: [ "main" ]
     paths:
       - 'terraform/**.tf'
- 
+permissions:
+  id-token: write
+
 jobs:
   terraform:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: read
- 
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
- 
+
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::222222222222:role/AFTGitHubRole
+          role-to-assume: arn:aws:iam::383975042464:role/AFTGitHubRole
+          audience: sts.amazonaws.com
           aws-region: us-east-1
- 
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
- 
+
       - name: Terraform Init
         run: terraform init
- 
+
       - name: Terraform Apply
         run: terraform apply -auto-approve
 ```
@@ -195,9 +198,9 @@ jobs:
  
     steps:
       - uses: actions/checkout@v4
-      - uses: aws-actions/configure-aws-credentials@v2
+      - uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::222222222222:role/AFTGitHubRole
+          role-to-assume: arn:aws:iam::383975042464:role/AFTGitHubRole
           aws-region: us-east-1
       - uses: hashicorp/setup-terraform@v3
       - run: terraform init
@@ -227,7 +230,7 @@ resource "aws_iam_role" "dev_role" {
     Version = "2012-10-17"
     Statement = [{
       Effect = "Allow"
-      Principal = { AWS = "arn:aws:iam::111111111111:root" }
+      Principal = { AWS = "arn:aws:iam::767397915550:root" }
       Action = "sts:AssumeRole"
     }]
   })
@@ -274,13 +277,34 @@ output "provisioning" {
 Fork/create these repos in your GitHub org.
 Update:
  
-* `ct_management_account_id`
-* `aft_management_account_id`
-* `your-github-user` in repo names
+* `ct_management_account_id: 767397915550`
+* `aft_management_account_id: 383975042464`
+* `your-github-user: hemantssharma` in repo names
 * OIDC IAM role ARNs
  
 Then trigger `Deploy AFT` workflow in **`aft-bootstrap`** to wire everything together.
  
 ---
- 
-👉 Do you want me to also generate an **IAM policy + trust policy** example for the `AFTGitHubRole` so you can copy it directly when creating that role in your AFT management account?
+
+```hcl
+# IAM role AFTGitHubRole trust-relationship 
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "Federated": "arn:aws:iam::383975042464:oidc-provider/token.actions.githubusercontent.com"
+            },
+            "Action": "sts:AssumeRoleWithWebIdentity",
+            "Condition": {
+                "StringEquals": {
+                    "token.actions.githubusercontent.com:sub": "repo:hemantssharma/aft-bootstrap:*",
+                    "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+                }
+            }
+        }
+    ]
+}
+```
+
