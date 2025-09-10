@@ -1,5 +1,6 @@
 module "dev_team1" {
-  source  = "git::https://github.com/aws-ia/terraform-aws-control_tower_account_factory_request.git?ref=v1.3.3"
+  source  = "aws-ia/control-tower-account-factory-request/aws"
+  version = "1.3.3"
 
   control_tower_parameters = {
     AccountEmail              = "mr.hemantksharma+devaccount-3@gmail.com"
