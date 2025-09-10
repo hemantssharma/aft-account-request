@@ -1,8 +1,11 @@
 name: Apply Account Requests
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
+    paths:
+      - 'terraform/**.tf'
+permissions:
+  id-token: write
       
 jobs:
   terraform:
