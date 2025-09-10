@@ -1,16 +1,12 @@
-module "dev-team1" {
-  source = "./modules/aft-account-request"
+resource "aws_controltower_account_factory_account" "dev_team1" {
+  account_email             = "mr.hemantksharma+devaccount-1@gmail.com"
+  account_name              = "devaccount-1"
+  organizational_unit_name  = "Sandbox"
+  sso_user_email            = "mr.hemantksharma+devaccount-1@gmail.com"
+  sso_user_first_name       = "Dev"
+  sso_user_last_name        = "Account-1"
  
-  control_tower_parameters = {
-    AccountEmail              = "mr.hemantksharma+devaccount-2@gmail.com"
-    AccountName               = "devaccount-2"
-    ManagedOrganizationalUnit = "Sandbox"
-    SSOUserEmail              = "mr.hemantksharma+devaccount-2@gmail.com"
-    SSOUserFirstName          = "Dev"
-    SSOUserLastName           = "Account-2"
-  }
- 
-  account_tags = {
+  tags = {
     owner = "Dev"
     env   = "sandbox"
   }
