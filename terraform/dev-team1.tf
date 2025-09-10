@@ -1,6 +1,6 @@
 module "dev_team1" {
-  source  = "aws-ia/account-request/aws"
-  version = "1.3.3" # latest stable release
+  source  = "aws-ia/control-tower-account-factory-request/aws"
+  version = "1.3.3"
 
   control_tower_parameters = {
     AccountEmail              = "mr.hemantksharma+devaccount-3@gmail.com"
