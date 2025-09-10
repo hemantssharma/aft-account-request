@@ -35,7 +35,7 @@ module "aft" {
   source = "github.com/aws-ia/terraform-aws-control_tower_account_factory"
 
   ct_management_account_id  = "767397915550"
-  aft_management_account_id = "383975042464"
+  aft_management_account_id = "314431539167"
   ct_home_region            = "us-east-1"
 
   vcs_provider                                = "github"
@@ -68,7 +68,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::383975042464:role/AFTGitHubRole
+          role-to-assume: arn:aws:iam::314431539167:role/AFTGitHubRole
           audience: sts.amazonaws.com
           aws-region: us-east-1
 
@@ -145,7 +145,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::383975042464:role/AFTGitHubRole
+          role-to-assume: arn:aws:iam::314431539167:role/AFTGitHubRole
           audience: sts.amazonaws.com
           aws-region: us-east-1
 
@@ -200,7 +200,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::383975042464:role/AFTGitHubRole
+          role-to-assume: arn:aws:iam::314431539167:role/AFTGitHubRole
           aws-region: us-east-1
       - uses: hashicorp/setup-terraform@v3
       - run: terraform init
@@ -278,7 +278,7 @@ Fork/create these repos in your GitHub org.
 Update:
  
 * `ct_management_account_id: 767397915550`
-* `aft_management_account_id: 383975042464`
+* `aft_management_account_id: 314431539167`
 * `your-github-user: hemantssharma` in repo names
 * OIDC IAM role ARNs
  
@@ -294,7 +294,7 @@ Then trigger `Deploy AFT` workflow in **`aft-bootstrap`** to wire everything tog
         {
             "Effect": "Allow",
             "Principal": {
-                "Federated": "arn:aws:iam::383975042464:oidc-provider/token.actions.githubusercontent.com"
+                "Federated": "arn:aws:iam::314431539167:oidc-provider/token.actions.githubusercontent.com"
             },
             "Action": "sts:AssumeRoleWithWebIdentity",
             "Condition": {
