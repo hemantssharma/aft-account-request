@@ -26,6 +26,11 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
+      - name: Configure Git credentials for Terraform
+        run: |
+          git config --global url."https://oauth2:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
+
+
       - name: Terraform Init
         run: terraform init -upgrade
         working-directory: terraform
