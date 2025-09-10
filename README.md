@@ -17,70 +17,98 @@ aft-bootstrap/
 **main.tf**
  
 ```hcl
+# I hope this time it should work
+
 terraform {
   required_version = ">= 1.6.0"
+ 
   backend "s3" {
-    bucket         = "my-terraform-state-bucket-aft-bootstrap"
+    bucket         = "my-terraform-state-bucket-aftbootstrap"
     key            = "aft-bootstrap/terraform.tfstate"
     region         = "us-east-1"
     dynamodb_table = "my-terraform-locks"
   }
 }
-
+ 
 provider "aws" {
   region = "us-east-1"
 }
 
+ 
 module "aft" {
-  source = "github.com/aws-ia/terraform-aws-control_tower_account_factory"
-
-  ct_management_account_id  = "767397915550"
-  aft_management_account_id = "314431539167"
+  source  = "aws-ia/control_tower_account_factory/aws"
+  version = "1.10.1" # upgrade to latest
+ 
+  # Required inputs
+  ct_management_account_id  = "767397915550"   # Control Tower Mgmt
+  aft_management_account_id = "314431539167"   # AFT Mgmt
   ct_home_region            = "us-east-1"
-
+  audit_account_id            = "753862336665" # <--- replace with your real Audit account
+  log_archive_account_id      = "844840482771" # <--- replace with your real Log Archive account
+  tf_backend_secondary_region = "us-west-2"    # <--- choose secondary region for backend
+ 
+  # AFT repos (update with your GitHub org/user)
   vcs_provider                                = "github"
   account_request_repo_name                   = "hemantssharma/aft-account-request"
   account_request_repo_branch                 = "main"
   global_customizations_repo_name             = "hemantssharma/aft-global-customizations"
   account_customizations_repo_name            = "hemantssharma/aft-account-customizations"
   account_provisioning_customizations_repo_name = "hemantssharma/aft-provisioning-customizations"
+ 
 }
 ```
  
 **.github/workflows/deploy.yml**
  
 ```yaml
-name: Deploy AFT
+name: Deploy AFT Bootstrap
+ 
 on:
-  workflow_dispatch:
-
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'terraform/**.tf'
+ 
+permissions:
+  id-token: write
+  contents: read
+ 
 jobs:
   terraform:
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
-
+ 
     steps:
-      - name: Checkout repo
+      - name: Checkout
         uses: actions/checkout@v4
-
+ 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::314431539167:role/AFTGitHubRole
-          audience: sts.amazonaws.com
           aws-region: us-east-1
-
+ 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
-
+        with:
+          terraform_version: 1.7.5
+ 
       - name: Terraform Init
-        run: terraform init
+        run: terraform init -reconfigure
 
+      - name: Import existing DynamoDB table
+        run: terraform import module.aft.module.aft_backend.aws_dynamodb_table.lock-table aft-backend-314431539167 || true
+
+      - name: Import existing IAM Roles
+        run: |
+          terraform import module.aft.module.aft_iam_roles.module.ct_management_exec_role.aws_iam_role.role AWSAFTExecution || true
+          terraform import module.aft.module.aft_iam_roles.module.ct_management_service_role.aws_iam_role.role AWSAFTService || true
+ 
+      - name: Terraform Validate
+        run: terraform validate
+ 
       - name: Terraform Plan
         run: terraform plan -out=tfplan
-
+ 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
 ```
@@ -101,22 +129,24 @@ aft-account-request/
 **terraform/dev-team1.tf**
  
 ```hcl
-module "dev-team1" {
-  source = "./modules/aft-account-request"
- 
+module "dev_team1" {
+  source  = "aws-ia/control-tower-account-factory-request/aws"
+  version = "1.3.3"
+
   control_tower_parameters = {
-    AccountEmail              = "mr.hemantksharma+devaccount-1@gmail.com"
-    AccountName               = "devaccount-1"
+    AccountEmail              = "mr.hemantksharma+devaccount-3@gmail.com"
+    AccountName               = "devaccount-3"
     ManagedOrganizationalUnit = "Sandbox"
-    SSOUserEmail              = "mr.hemantksharma+devaccount-1@gmail.com"
+    SSOUserEmail              = "mr.hemantksharma+devaccount-3@gmail.com"
     SSOUserFirstName          = "Dev"
-    SSOUserLastName           = "Account-1"
+    SSOUserLastName           = "Account-3"
   }
- 
+
   account_tags = {
     owner = "Dev"
     env   = "sandbox"
   }
+}
 }```
  
 **.github/workflows/apply.yml**
@@ -134,26 +164,24 @@ permissions:
 jobs:
   terraform:
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
+    defaults:
+      run:
+        working-directory: terraform   # 👈 important! point to your terraform folder
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::314431539167:role/AFTGitHubRole
-          audience: sts.amazonaws.com
-          aws-region: us-east-1
+      - name: Checkout
+        uses: actions/checkout@v3
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.7
 
       - name: Terraform Init
-        run: terraform init
+        run: terraform init -upgrade
+
+      - name: Terraform Plan
+        run: terraform plan
 
       - name: Terraform Apply
         run: terraform apply -auto-approve
