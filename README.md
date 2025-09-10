@@ -299,8 +299,16 @@ Then trigger `Deploy AFT` workflow in **`aft-bootstrap`** to wire everything tog
             "Action": "sts:AssumeRoleWithWebIdentity",
             "Condition": {
                 "StringEquals": {
-                    "token.actions.githubusercontent.com:sub": "repo:hemantssharma/aft-bootstrap:*",
                     "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+                },
+                "StringLike": {
+                    "token.actions.githubusercontent.com:sub": [
+                        "repo:hemantssharma/aft-bootstrap:*",
+                        "repo:hemantssharma/aft-account-request:*",
+                        "repo:hemantssharma/aft-global-customizations:*",
+                        "repo:hemantssharma/aft-account-customizations:*",
+                        "repo:hemantssharma/aft-provisioning-customizations:*"
+                    ]
                 }
             }
         }
