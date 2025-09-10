@@ -1,9 +1,8 @@
 name: Apply Account Requests
 on:
   push:
-    branches: [ "main" ]
-    paths:
-      - 'terraform/dev-team1.tf'
+    branches:
+      - main
       
 jobs:
   terraform:
