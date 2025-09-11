@@ -1,37 +1,36 @@
-name: Apply Account Requests
+name: Validate Terraform (AFT Account Request)
+
 on:
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'terraform/**.tf'
   push:
     branches: [ "main" ]
     paths:
       - 'terraform/**.tf'
+
 permissions:
-  id-token: write
-      
+  contents: read
+
 jobs:
-  terraform:
+  terraform-validate:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: terraform
+        working-directory: terraform   # 👈 points to your terraform folder
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.7.5
-      
-      - name: Terraform Init
-        run: terraform init -upgrade -reconfigure
-      
+
+      - name: Terraform Init (no backend)
+        run: terraform init -backend=false
+
       - name: Terraform Validate
         run: terraform validate
-      
-      - name: Terraform Plan
-        run: terraform plan
-      
-      - name: Terraform Apply
-        run: terraform apply -auto-approve
-
-
