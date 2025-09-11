@@ -1,19 +1,17 @@
-name: Lint Terraform
+name: Terraform Lint
 
 on:
-  pull_request:
-    branches: [ "main" ]
-    paths:
-      - 'terraform/**.tf'
   push:
     branches: [ "main" ]
     paths:
-      - 'terraform/**.tf'
+      - '**.tf'
 
 jobs:
-  fmt:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Check Terraform formatting
-        run: terraform fmt -check -recursive
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.6   # or 1.7.x if consistent
+      - run: terraform fmt -check -recursive
