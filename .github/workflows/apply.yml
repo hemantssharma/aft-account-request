@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: terraform   # 👈 points to your terraform folder
+        working-directory: terraform
 
     steps:
       - name: Checkout
@@ -29,8 +29,8 @@ jobs:
         with:
           terraform_version: 1.7.5
 
-      - name: Terraform Init (no backend)
-        run: terraform init -backend=false
+      - name: Terraform Init (no backend, no modules)
+        run: terraform init -backend=false -get=false
 
       - name: Terraform Validate
         run: terraform validate
