@@ -31,4 +31,4 @@ jobs:
 
       # 🚨 Skip terraform init (since modules don't exist in repo)
       - name: Terraform Validate (syntax only)
-        run: terraform validate -check-variables=false
+        run: terraform validate
